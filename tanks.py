@@ -30,6 +30,8 @@ class Tanks(polygon.Polygon):
             self.Color = (255,0,255)
         elif color == "TEAL":
             self.Color = (0,255,255)
+        elif color == "ORANGE":
+            self.Color = (247, 162, 57)
         
         self.Tank_startX = x
         
@@ -43,7 +45,7 @@ class Tanks(polygon.Polygon):
         
         self.Health_pack = True
         
-        self.ammo_stockpile = [99, 8, 4, 2, 1]
+        self.ammo_stockpile = [99, 8, 4, 2, 1, 4, 2]
         
         
     def getTankWidth(self):

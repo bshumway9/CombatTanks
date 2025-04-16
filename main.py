@@ -9,17 +9,18 @@ class PygameApp( game.Game ):
     def __init__( self, width, height, frame_rate ):
         self.Width = width
         self.Height = height
-        self.start_menu = True
-        self.game_play = False
-        
-        
-        self.players = 6
-        self.player_names = []
-        self.player_colors = []
-        self.Game = menu.Menu(width, height)
+        self.start_menu = False # set True
+        self.game_play = True # set False
+        self.round_num = 1
+        self.rounds = 5
+        self.players = 2
+        self.player_names = ["BOB", "JOE"]
+        self.player_colors = ["RED", "BLUE"]
+        #self.Game = menu.Menu(width, height)
+        self.Game = combattanks.CombatTanks(self.Width, self.Height, self.players, self.player_names, self.player_colors)
 
 
-        # title of the application is ""
+        # title of the application is "Combat Tanks"
         game.Game.__init__( self, "COMBAT TANKS",
                                   width,
                                   height,
@@ -68,6 +69,12 @@ class PygameApp( game.Game ):
             
         if pygame.K_5 in newkeys:
             self.Game.updateAmmo(4)
+        
+        if pygame.K_6 in newkeys:
+            self.Game.updateAmmo(5)
+            
+        if pygame.K_7 in newkeys:
+            self.Game.updateAmmo(6)
             
         if pygame.K_h in newkeys:
             self.Game.Tanks[self.Game.player_num].Healthpack()
@@ -225,7 +232,7 @@ class PygameApp( game.Game ):
 
 def main():
     pygame.font.init( )
-    game = PygameApp( 1300, 640, 60 ) #1400. 700, 30 #1200,600
+    game = PygameApp( 1290, 640, 60 ) #1400. 700, 30 #1200,600 #fullscreen 1300, 640
     game.main_loop( )
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ class Menu:
         self.Width = world_width
         self.Height = world_height
         self.players = ""
+        self.rounds = ""
         self.player_names = []
         self.player_colors = []
         self.input = ""
@@ -20,8 +21,8 @@ class Menu:
         self.playerNum = 1
         self.inputColor = False
         self.player_color_count = 0
-        self.available_colors = ["RED", "BLUE", "GREEN", "YELLOW", "PINK", "TEAL"]
-        self.Earth = earth.Earth(world_width, world_height+300, 5)
+        self.available_colors = ["RED", "BLUE", "GREEN", "YELLOW", "PINK", "TEAL", "ORANGE"]
+        self.Earth = earth.Earth(world_width, world_height+300, 5) #5 #main has 3
         self.Tanks = []
         self.Missiles = []
         self.Explosion = []
@@ -62,7 +63,7 @@ class Menu:
         power = self.Tanks[self.tankNum].Power
         wind = random.randrange(-40, 40)
         self.Missiles = missile.Missile(new_x, new_y, rotation, power, wind, self.Width, self.Height)
-        if self.tankNum == 5:
+        if self.tankNum == 6:
             self.tankNum = 0
         else:
             self.tankNum +=1
@@ -90,10 +91,10 @@ class Menu:
         
     def inputValid(self):
         if self.inputNum == 0:
-            if self.input not in ["2","3","4","5","6"]:
+            if self.input not in ["2","3","4","5","6", "7"]:
                 self.input = ""
                 return False
-            if self.input in ["2","3","4","5","6"]:
+            if self.input in ["2","3","4","5","6", "7"]:
                 self.players = self.input
                 self.nextInput()
                 self.inputNumMax += int(self.players)
@@ -143,11 +144,23 @@ class Menu:
             self.Explosion.draw(surface)
         
         welcome = (text.Text("WELCOME TO COMBAT TANKS" , self.Width/2, 25))
+        pygame.draw.line(surface, (0,0,0), (self.Width/2 - 165, 10), (self.Width/2 + 165, 10), 1)
+        pygame.draw.line(surface, (0,0,0), (self.Width/2 - 165, 10), (self.Width/2 - 165, 40), 1)
+        pygame.draw.line(surface, (160,160,160), (self.Width/2 - 165, 40), (self.Width/2 + 165, 40), 1)
+        pygame.draw.line(surface, (160,160,160), (self.Width/2 + 165, 10), (self.Width/2 + 165, 40), 1)
         welcome.draw(surface)
-        player_max = (text.Text("2-6 PLAYERS", self.Width/2, 100))
+        player_max = (text.Text("2-7 PLAYERS", self.Width/2, 100))
+        pygame.draw.line(surface, (0,0,0), (self.Width/2 - 80, 85), (self.Width/2 + 80, 85), 1)
+        pygame.draw.line(surface, (0,0,0), (self.Width/2 - 80, 85), (self.Width/2 - 80, 115), 1)
+        pygame.draw.line(surface, (160,160,160), (self.Width/2 - 80, 115), (self.Width/2 + 80, 115), 1)
+        pygame.draw.line(surface, (160,160,160), (self.Width/2 + 80, 85), (self.Width/2 + 80, 115), 1)
         player_max.draw(surface)
         
         players = (text.Text("HOW MANY PLAYERS: " + self.input, self.Width/2, 175))
+        pygame.draw.line(surface, (0,0,0), (self.Width/2 - 135, 160), (self.Width/2 + 135, 160), 1)
+        pygame.draw.line(surface, (0,0,0), (self.Width/2 - 135, 160), (self.Width/2 - 135, 190), 1)
+        pygame.draw.line(surface, (160,160,160), (self.Width/2 - 135, 190), (self.Width/2 + 135, 190), 1)
+        pygame.draw.line(surface, (160,160,160), (self.Width/2 + 135, 160), (self.Width/2 + 135, 190), 1)
         if self.inputNum == 0:
             players.draw(surface)
         playernum = (text.Text("HOW MANY PLAYERS: " + self.players, self.Width/2, 175))

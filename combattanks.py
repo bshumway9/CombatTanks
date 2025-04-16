@@ -6,9 +6,11 @@ import earth
 import info
 import random
 import missile
+import specialmissile
 import explosion
 import time
 import math
+import earthtest
 
 
 class CombatTanks:
@@ -24,10 +26,15 @@ class CombatTanks:
         self.Tanks = []
         self.LivingTanks = []
         self.Explosion = []
-        self.Earth = earth.Earth(world_width, world_height, 3)
+        self.Earth = earthtest.EarthTest(world_width, world_height, 3)
+        #self.Earth = earth.Earth(world_width, world_height, 3)
+        
+        
         self.wind = random.randrange(-50, 50)
         sky_colors = [(135,206,235), (46,68,130)]
-        self.sky = sky_colors[random.randrange(0,2)]
+        self.sky = (135,206,235)
+        #self.sky = sky_colors[random.randrange(0,2)]
+        self.game_finish = False
         
         #Tank initializing
         tank_start_range = self.world_width//(self.players+1)
@@ -43,7 +50,7 @@ class CombatTanks:
             end_range += tank_start_range + extra_gap
             self.Tanks.append(tanks.Tanks(tank_x, tank_y, color, world_width, world_height))
         self.LivingTanks += self.Tanks
-        self.ammo_list = ["babymissile", "missile", "babynuke", "moab", "nuke"]
+        self.ammo_list = ["babymissile", "missile", "babynuke", "moab", "nuke", "roller", "bigroller"]
         self.ammo = 0
         self.game_over = False
         
@@ -57,6 +64,7 @@ class CombatTanks:
         
         #Missiles
         self.Missiles = []
+        self.SMissiles = []
         
         
     def nextPlayer(self):
@@ -108,12 +116,21 @@ class CombatTanks:
         self.Tanks[self.player_num].setPower(-delta_power)
         
     def fireWeapon(self):
+        #takeout falling earth thing
+        self.Earth.Falling_Earth.reset()
+        self.Missiles = []
+        self.SMissiles = []
         x,y = self.Tanks[self.player_num].getEndBarrellPoint()
         new_x = x
         new_y = y - 1
         rotation = self.Tanks[self.player_num].getRotation()
         power = self.Tanks[self.player_num].Power
-        self.Missiles = missile.Missile(new_x, new_y, rotation, power, self.wind, self.world_width, self.world_height)
+        if self.ammo == 5 or self.ammo == 6:
+            self.SMissiles = specialmissile.SpecialMissile(new_x, new_y, rotation, power, self.wind, self.world_width, self.world_height)
+        else:
+            self.Missiles = missile.Missile(new_x, new_y, rotation, power, self.wind, self.world_width, self.world_height)
+
+
         
     def stopTank(self):
         for i in self.Tanks:
@@ -169,6 +186,30 @@ class CombatTanks:
                 elif k < (y - overlap):
                     extra = k + (overlap*2)
                     self.Earth.end_pos[i] = (h, extra)
+            self.Explosion.damage = False
+            
+    def removeEarthTest(self, x, y, radius):
+        if self.Explosion.damage == True:
+            left = x - radius
+            right = x + radius
+            if right > self.world_width:
+                right = self.world_width
+            if left < 0:
+                left = 0
+            for i in range(int(left), int(right)):
+                h,k = self.Earth.end_pos[i]
+                newH = x - h
+                overlap = 0
+                if newH < radius:
+                    overlap = math.sqrt((radius* radius)- (newH*newH))
+                if k > (y - overlap) and k < (y + overlap):
+                    amount = y + overlap
+                    self.Earth.end_pos[i] = (h, amount)
+                elif k < (y - overlap):
+                    extra = k + (overlap*2)
+                    self.Earth.Falling_Earth.addLine((h, y - overlap), (h, k), i, (y + overlap))
+                    self.Earth.end_pos[i] = (h, y + overlap)#(h, extra)
+
             self.Explosion.damage = False
 
             
@@ -247,7 +288,7 @@ class CombatTanks:
             
         
         
-        
+        #impact
     def impact(self, dt):
         missile_x = int(self.Missiles.getX())
         missile_y = int(self.Missiles.getY())
@@ -271,10 +312,91 @@ class CombatTanks:
                 self.LivingTanks.remove(tank)
             if self.Explosion:
                 if self.Explosion.damage:
-                    self.removeEarth(missile_x, missile_y, (self.Explosion.radius_max *25))
-                    self.adjustEarth(missile_x, missile_y, (self.Explosion.radius_max *25), 0)
+                    self.removeEarthTest(missile_x, missile_y, (self.Explosion.radius_max *25))
+                    #self.removeEarth(missile_x, missile_y, (self.Explosion.radius_max *25))
+                    #self.adjustEarth(missile_x, missile_y, (self.Explosion.radius_max *25), 0)
                     self.adjustWind()
+    
+    
+    def slope(self, x, x2nd):
+        if x < x2nd:
+            x1 = x
+            x2 = x2nd
+        else:
+            x1 = x2nd
+            x2 = x
+        if x2 - x1 == 0:
+            x2 += 1
+        y1 = self.world_height - self.Earth.end_pos[x1][1]
+        y2 = self.world_height - self.Earth.end_pos[x2][1]
+        slope = (y2 - y1)/(x2 - x1)
+        return slope
+            
                     
+                #special impact    
+    def simpact(self, dt):
+        missile_x = int(self.SMissiles.getX())
+        x = missile_x
+        missile_y = int(self.SMissiles.getY())
+        y = missile_y
+        earth_y = int(self.Earth.end_pos[missile_x-1][1])
+        if earth_y <= missile_y or missile_y >= self.world_height and self.Explosion == []:
+            self.SMissiles.setDY(0)
+            self.SMissiles.windspeed = 0
+            if self.SMissiles.DX != 0:
+                self.SMissiles.setDX(0)
+
+                x1 = x - 15
+                x2 = x + 15
+                x3 = (x1+x2)//2
+                self.SMissiles.setY(self.Earth.end_pos[x3][1])
+                left = x - 15
+                right = x +15
+                if left <= 0:
+                    left = 0
+                if right >= self.world_width:
+                    right = self.world_width - 2
+                    
+                slope1 = self.slope(x, left)
+                slope2 = self.slope(x, right)
+                
+                if abs(slope1) > abs(slope2):
+                    slopeR = slope1
+                else:
+                    slopeR = slope2
+                if slope1 < 0 and slope2 < 0:
+                    self.SMissiles.setDX(-slopeR* 40)
+                elif slope1 > 0 and slope2 > 0:
+                    self.SMissiles.setDX(-slope2* 40)
+                elif abs(slopeR) > .5:
+                    self.SMissiles.setDX(-slopeR* 40)
+                else:
+                    self.SMissiles.setDX(0)
+                    if self.Explosion == []:
+                        self.Explosion = explosion.Explosion(missile_x, missile_y, self.ammo_name)
+                if slope1 > 0 and slope2 < 0 or slope1 < 0 and slope2 > 0 or x <= 3 or self.world_width - x <= 3:
+                    if abs(slope1) - abs(slope2) < .05 and self.Explosion == []:
+                        self.SMissiles.setDX(0)
+                        self.Explosion = explosion.Explosion(missile_x, missile_y, self.ammo_name)
+
+
+        if self.Explosion:
+            self.SMissiles.setDX(0)
+            self.Explosion.evolve(dt)
+        for tank in self.LivingTanks:
+            health = 0
+            if self.Explosion:
+                health = self.tankInRadius(tank.getX(), tank.getY(), missile_x, missile_y, self.Explosion.radius, self.Explosion.ammo_power)
+                if health > 0:
+                    tank.setHealth(health)
+            if tank.Health == 0:
+                self.LivingTanks.remove(tank)
+            if self.Explosion:
+                if self.Explosion.damage:
+                    self.removeEarthTest(missile_x, missile_y, (self.Explosion.radius_max *25))
+                    #self.removeEarth(missile_x, missile_y, (self.Explosion.radius_max *25))
+                    #self.adjustEarth(missile_x, missile_y, (self.Explosion.radius_max *25), 0)
+                    self.adjustWind()
         
             #create explosion instance here
                 
@@ -284,28 +406,43 @@ class CombatTanks:
         self.health = self.Tanks[self.player_num].Health
         self.power = self.Tanks[self.player_num].Power
         self.info = info.Info(0,0, self.player_names[self.player_num], self.angle, self.health, self.power, self.wind, self.ammo_name, self.Tanks[self.player_num].ammo_stockpile[self.ammo], self.game_over, self.world_width, self.world_height)
+        '''if len(self.LivingTanks) == 1:
+                self.game_finish = True'''
     
     def evolve(self, dt):
-        for i in self.Objects:
-            i.evolve(dt)
-        for j in self.Tanks:
-            newY = self.Earth.getTankHeight(j.getTankStartX(), j.getTankWidth()) - (j.getTankHeight() *2) + 6
-            if newY >= self.world_height:
-                j.Y = self.world_height - (j.getTankHeight() *2) + 10
-            else:
-                j.Y = newY 
-        if self.Tanks[self.player_num].Stop_drain == 1:
-            self.Tanks[self.player_num].evolve(dt)
-        self.updateInfo()
-        if self.Missiles:
-            self.Missiles.evolve(dt)
-            self.impact(dt)
+        if not self.game_finish:
+            for i in self.Objects:
+                i.evolve(dt)
+            for j in self.Tanks:
+                newY = self.Earth.getTankHeight(j.getTankStartX(), j.getTankWidth()) - (j.getTankHeight() *2) + 6
+                if newY >= self.world_height:
+                    j.Y = self.world_height - (j.getTankHeight() *2) + 10
+                else:
+                    j.Y = newY 
+            if self.Tanks[self.player_num].Stop_drain == 1:
+                self.Tanks[self.player_num].evolve(dt)
+            self.updateInfo()
+            if self.SMissiles:
+                self.SMissiles.evolve(dt)
+                self.simpact(dt)
+            if self.Missiles:
+                self.Missiles.evolve(dt)
+                self.impact(dt)
+            if self.Tanks[self.player_num].Health == 0:
+                self.player_num +=1
+                if self.player_num > self.players -1:
+                    self.player_num = 0
+            if self.Earth.Falling_Earth.exists and (self.Explosion == [] or self.Explosion.finished):
+                if self.Earth.Falling_Earth.isFrozen():
+                    time.sleep(0.5)
+                    #self.Earth.Falling_Earth.randomDY()
+                self.Earth.evolve(dt)
+            '''if self.Explosion:
+                if self.Explosion.finished and self.Explosion.DRadius == 0:
+                    self.Explosion = []'''
+            '''if len(self.LivingTanks) == 1 and :
+                self.game_finish = True'''
             
-            
-        if self.Tanks[self.player_num].Health == 0:
-            self.player_num +=1
-            if self.player_num > self.players -1:
-                self.player_num = 0
         
             
     
@@ -322,9 +459,13 @@ class CombatTanks:
          
         if self.Missiles: 
             self.Missiles.draw(surface)
+            
+        if self.SMissiles:
+            self.SMissiles.draw(surface)
         
         if self.Explosion:
             self.Explosion.draw(surface)
+        
         
         #Fuel gage
         pygame.draw.line(surface, (255,220,150), (150, 20), (self.Tanks[self.player_num].Fuel + 150,20), 5)

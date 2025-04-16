@@ -21,10 +21,10 @@ class Movable:
         return self.DY
     
     def setDX(self, value):
-        self.DX = 0
+        self.DX = value
         
     def setDY(self, value):
-        self.DY = 0
+        self.DY = value
     
     def getWorldWidth(self):
         return self.WorldWidth

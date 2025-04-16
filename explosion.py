@@ -7,8 +7,8 @@ class Explosion:
         self.x = x
         self.y = y
         self.ammo = ammo
-        self.ammo_list = {"missile": 1, "nuke": 4, "moab": 3, "babymissile": .5, "babynuke": 2}
-        self.ammo_power_list = {"missile": 1.75, "nuke": 4, "moab": 3, "babymissile": 2.5, "babynuke": 2}
+        self.ammo_list = {"missile": 1, "nuke": 4, "moab": 3, "babymissile": .5, "babynuke": 2, "roller": 1, "bigroller": 2}
+        self.ammo_power_list = {"missile": 1.75, "nuke": 4, "moab": 3, "babymissile": 2.5, "babynuke": 2, "roller": 1.75, "bigroller": 2}
         self.ammo_power = self.ammo_power_list[ammo]
         self.radius_max = self.ammo_list[ammo]
         self.growth_rate = self.radius_max / 10
