@@ -34,3 +34,4 @@ To run CombatTanks, ensure you have the following installed:
 - **1, 2, 3, 4, 5**: Select which missile to use in increasing order of size.
 - **Enter**: Fire your missile and end your turn.
 
+![Title Screen](title_screen.png)
